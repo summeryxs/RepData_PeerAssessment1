@@ -1,25 +1,27 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
+title: "Reproducible Research: Peer Assessment 1""
+   output: html_document
     keep_md: true
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
 
+```{r}
+repdata <- read.csv("./activity.csv")
+repdata_1 <- na.omit(repdata)
+library(dplyr)
+```
 
+## Including Plots
 
-## What is mean total number of steps taken per day?
+You can also embed plots, for example:
 
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
 
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
