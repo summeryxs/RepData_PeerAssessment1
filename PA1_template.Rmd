@@ -1,7 +1,7 @@
 ---
-title: "Reproducible Research: Peer Assessment 1""
-   output: html_document
-    keep_md: true
+title: "Reproducible Research: Peer Assessment 1"
+output: html_document
+keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -12,16 +12,82 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 repdata <- read.csv("./activity.csv")
-repdata_1 <- na.omit(repdata)
+repdata_1 <- na.omit (repdata)
 library(dplyr)
+library(ggplot2)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+## Total number of steps per day
+```{r}
+result_total <- aggregate(repdata_1$steps~repdata_1$date,FUN = sum)
+colnames(result_total) <- c("date","steps")
+```
+Histogram of daily steps number
+```{r}
+hist(result_total$steps,col = "red", main = "Daily steps per day")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Mean and median number of steps per day
+
+```{r}
+result_mean <-mean(result_total$steps)
+result_median <-median(result_total$steps)
+print(result_mean)
+print(result_median)
+```
+
+## Time series plots and the Max of step and relative intervals
+```{r}
+result_avg <- aggregate(repdata_1$steps~repdata_1$interval,FUN = mean)
+colnames(result_avg) <-c("interval","steps")
+step_max <-max(result_avg$steps)
+interval_max <- result_avg$interval[result_avg$steps==step_max]
+with(result_avg,plot(interval,steps,type="l",main="Average steps of every 5minutes in a day"))
+print(interval_max)
+print(step_max)
+```
+
+## Input missing data and Filling in NAs with average steps of 5 minutes interval
+```{r}
+nrow(repdata[is.na(repdata$steps),])
+```
+Filling in NAs with average steps of 5-minutes interval
+```{r}
+repdata_na<-repdata[is.na(repdata$steps),]
+repdata_mg <-merge(repdata_na,result_avg,by = "interval")
+repdata_fil<-repdata_mg[,c(4,3,1)]
+colnames(repdata_fil)<-c("steps","date","interval")
+repdata_new<-rbind(repdata_1,repdata_fil)
+```
+## Calculate the mean of new dataset and Plot histogram.
+```{r}
+result_new <- aggregate(repdata_new$steps~repdata_new$date,FUN = sum)
+colnames(result_new)<-c("date","steps")
+mean(result_total$steps)
+mean(result_new$steps)
+
+hist(result_new$steps,col = "red",main = "Daily steps per day adjusted")
+hist(result_total$steps,col = "blue",add = T)
+legend("topright",c("Adjusted Data","NA excluded data"),fill=c("red","blue"))
+```
+New mean and median
+```{r}
+Newmean<-mean(result_new$steps)
+Newmedian<-median(result_new$steps)
+Newmean
+Newmedian
+```
+## Differences between weekdays and weekends
+```{r}
+library(lattice)
+library(plyr)
+repdata_new$day<-weekdays(as.Date(repdata_new$date))
+repdata_new$wkd<-ifelse(repdata_new$day %in% c("星期六", "星期日"), "Weekend", "Weekday")
+repdata_newAVG<-ddply(repdata_new,.(interval,wkd),summarize,Avg=mean(steps))
+```
+Plot the line figure using average number versus interval.
+
+```{r}
+xyplot(Avg~interval|wkd,data=repdata_newAVG,type="l",layout=c(1,2),main="Average Steps per Interval",ylab="Average Number of Steps",xlab="Interval")
+```
+
